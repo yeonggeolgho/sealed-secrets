@@ -183,6 +183,7 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 		return
 	}
 
+	// 무한 루프 부분
 	wait.Until(func() {
 		c.runWorker(context.Background())
 	}, time.Second, stopCh)

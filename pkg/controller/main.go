@@ -197,6 +197,7 @@ func Main(f *Flags, version string) error {
 
 	sinformer := informers.NewFilteredSharedInformerFactory(clientset, 0, namespace, tweakopts)
 	ssinformer := ssinformers.NewFilteredSharedInformerFactory(ssclientset, 0, namespace, tweakopts)
+	// 컨트롤러 객체 생성
 	controller := NewController(clientset, ssclientset, ssinformer, sinformer, keyRegistry)
 	controller.oldGCBehavior = f.OldGCBehavior
 	controller.updateStatus = f.UpdateStatus
@@ -204,6 +205,7 @@ func Main(f *Flags, version string) error {
 	stop := make(chan struct{})
 	defer close(stop)
 
+	// 컨트롤러 시작
 	go controller.Run(stop)
 
 	if f.AdditionalNamespaces != "" {
@@ -245,6 +247,7 @@ func Main(f *Flags, version string) error {
 
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGTERM)
+	// SIGTERM 들어때까지 대기
 	<-sigterm
 
 	return server.Shutdown(context.Background())
