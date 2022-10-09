@@ -29,7 +29,7 @@ import (
 	ssclient "github.com/bitnami-labs/sealed-secrets/pkg/client/clientset/versioned"
 	"github.com/bitnami-labs/sealed-secrets/pkg/crypto"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -187,6 +187,14 @@ var _ = Describe("create", func() {
 		Context("With existing object (update)", func() {
 			JustBeforeEach(func() {
 				var err error
+
+				Eventually(func() (*ssv1alpha1.SealedSecret, error) {
+					return ssc.BitnamiV1alpha1().SealedSecrets(ss.Namespace).Get(context.Background(), secretName, metav1.GetOptions{})
+				}, Timeout, PollingInterval).ShouldNot(WithTransform(getStatus, BeNil()))
+
+				ss, err = ssc.BitnamiV1alpha1().SealedSecrets(ss.Namespace).Get(context.Background(), secretName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+
 				resVer := ss.ResourceVersion
 
 				// update
@@ -206,7 +214,7 @@ var _ = Describe("create", func() {
 				}
 				Eventually(func() (*v1.Secret, error) {
 					return c.Secrets(ns).Get(ctx, secretName, metav1.GetOptions{})
-				}, 5*time.Second).Should(WithTransform(getData, Equal(expected)))
+				}, Timeout, PollingInterval).Should(WithTransform(getData, Equal(expected)))
 				Eventually(func() (*ssv1alpha1.SealedSecret, error) {
 					return ssc.BitnamiV1alpha1().SealedSecrets(ns).Get(context.Background(), secretName, metav1.GetOptions{})
 				}, Timeout, PollingInterval).ShouldNot(WithTransform(getStatus, BeNil()))
